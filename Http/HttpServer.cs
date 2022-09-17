@@ -1,96 +1,52 @@
-﻿using System;
+﻿using Lusk.Core;
+using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lusk
 {
-    public class HttpServer
+    public class HttpServer : AbstractServer
     {
+        public override string Name => "HTTP repeating server";
 
-        /// <summary>
-        /// Factory
-        /// </summary>
-        /// <param name="waitForStartup"></param>
-        /// <param name="ip"></param>
-        /// <param name="port"></param>
-        public static async Task Start<S>(
-            bool waitForStartup,
-            Func<HttpRequest, HttpResponse> fn,
-            string ip = "127.0.0.1",
-            int port = 8080) where S : HttpServer, new()
+        Address Address;
+        public override Address Start(
+            Func<AbstractRequest, AbstractResponse> processRequest,
+            Address address)
         {
-            var started = new AutoResetEvent(false);
-            var task = Task.Run(async () =>
-            {
-                var server = new S().Configure(
-                    fn,
-                    ip,
-                    port,
-                    started
-                );
-
-                var serveNext = true;
-                do
-                {
-                    using (var client = await server.Listener.AcceptTcpClientAsync())
-                    {
-                        serveNext = await server.Serve(client);
-                    }
-                }while (serveNext);
-                server.Listener.Stop();
-            });
-
-            if(waitForStartup)
-            {
-                started.WaitOne();
-            }
-
-            await task;
-        }
-
-        protected virtual HttpServer Configure(
-            Func<HttpRequest, HttpResponse> processRequest,
-            string ip,
-            int port,
-            AutoResetEvent started)
-        {
+            Address = address;
             ProcessRequest = processRequest;
-            Listener = new TcpListener(IPAddress.Parse(ip), port);
+            Listener = new TcpListener(IPAddress.Parse(Address.IP), Address.Port);
+            // Listener.AllowNatTraversal(true);
             Listener.Start();
-            started.Set();
-            return this;
+            Console.WriteLine($"{Name} - listening on: {Address}");
+            return Address.Next();
         }
 
-        protected Func<HttpRequest, HttpResponse> ProcessRequest
+        protected Func<AbstractRequest, AbstractResponse> ProcessRequest
         {
             get;
             private set;
         }
 
-        protected TcpListener Listener
-        {
-            get;
-            private set;
-        }
+        public override string Url => $"http://{Address.IP}:{Address.Port}";
 
-        protected virtual async Task<bool> Serve(TcpClient client)
-        {
-            return await Task.Run(() =>
+        public override async Task<bool> ServeClient(TcpClient client) =>
+            await Task.Run(() =>
             {
                 var socket = client.Client;
                 var request = CreateReader(socket).Read();
                 var response = ProcessRequest(request);
-
-                CreateWriter(socket).Write(response);
+                CreateWriter(socket).Write((HttpResponse)response);
                 client.Close();
-                return true;
+                return response.Continue;
             });
-        }
 
-        protected virtual HttpReader CreateReader(Socket socket) => new HttpReader(socket);
+        protected virtual HttpReader CreateReader(Socket socket) =>
+            new HttpReader(socket);
 
-        protected virtual HttpWriter CreateWriter(Socket socket) => new HttpWriter(socket);
+        protected virtual HttpWriter CreateWriter(Socket socket) =>
+            new HttpWriter(socket);
     }
 }

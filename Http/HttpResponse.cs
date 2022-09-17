@@ -1,41 +1,42 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Lusk.Core;
 
 namespace Lusk
 {
-    public class HttpResponse
+    public class HttpResponse : AbstractResponse
     {
-        public bool Continue = true;
-        public readonly MemoryStream Content;
         public readonly int ContentLength;
         public readonly string[] Headers;
         public readonly string ResponseString;
 
-        public HttpResponse(string response)
+        public HttpResponse(string response, bool processNextRequest)
         {
+            Continue = processNextRequest;
             ResponseString = response;
             var sr = new StringReader(ResponseString);
-            Headers = HttpTools.ParseHeaders2(sr).ToArray();
+            Headers = sr.AsLines().ToArray();
 
-
-            Content = new MemoryStream();
+            base.Content = new MemoryStream();
             var rest = sr.ReadToEnd();
-            var bytes = UTF8Encoding.UTF8.GetBytes(rest);
+            var bytes = Encoding.UTF8.GetBytes(rest);
             Content.Write(bytes, 0, bytes.Length);
             Content.Position = 0;
         }
 
-        public byte[] GetHeadersBytes()
-        {
-            var h = string.Join(
-                "\n",
-                Headers.Append(Environment.NewLine).ToArray()
-            );
-            return UTF8Encoding.UTF8.GetBytes(h);
-        }
+        public static HttpResponse Single(string response) =>
+            new HttpResponse(response, false);
 
-        public byte[] GetContentBytes()
-        {
-            return Content.ToArray();
-        }
+        internal byte[] GetHeadersBytes() =>
+            Encoding.UTF8.GetBytes(
+                string.Join(
+                    separator: "\n",
+                    value: Headers.Append(Environment.NewLine).ToArray()
+                )
+            );
+
+        public byte[] GetContentBytes() => Content.ToArray();
     }
 }

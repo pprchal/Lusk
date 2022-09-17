@@ -2,23 +2,25 @@
 
 namespace Lusk
 {
-    public sealed class HttpWriter
+    public class HttpWriter
     {
-        readonly Socket HttpSocket;
-
         public HttpWriter(Socket socket)
         {
             HttpSocket = socket;
         }
 
-        internal bool Write(HttpResponse response)
+        readonly Socket HttpSocket;
+
+        internal virtual bool Write(HttpResponse response)
         {
-            var b = new byte[] { (byte)'\n' };
-            HttpSocket.Send(response.GetHeadersBytes());
-            var bytes = response.GetContentBytes();
-            var bytesWritten = HttpSocket.Send(bytes);
-            var nn = HttpSocket.Poll(2000, SelectMode.SelectRead);
-            return bytesWritten == bytes.Length;
+            var headersBytes = response.GetHeadersBytes();
+            var headersBytesSent = HttpSocket.Send(headersBytes);
+
+            var contentBytes = response.GetContentBytes();
+            var contentBytesSent = HttpSocket.Send(contentBytes);
+
+            return (headersBytes.Length == headersBytesSent) &&
+                (contentBytes.Length == contentBytesSent);
         }
     }
 }

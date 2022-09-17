@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.IO;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace Lusk
 {
@@ -6,7 +8,7 @@ namespace Lusk
     {
         readonly Socket HttpSocket;
 
-        public HttpReader(Socket httpSocket)
+        internal HttpReader(Socket httpSocket)
         {
             HttpSocket = httpSocket;
         }
