@@ -32,11 +32,12 @@ public class MyTest
     [Test]
     public void MyMockTest()
     {
-        new HttpClient().PostAsync(
+        var response = new HttpClient().PostAsync(
             Lusk.Url, // <-- it's http://127.0.0.1:8080 by default, then port +1 
             new StringContent("Lusk")
-        );
-        // ...
+        ).Result;
+        
+        Assert.That(response, Is.EqualTo("Lusk"));
     }
 }
 ```
