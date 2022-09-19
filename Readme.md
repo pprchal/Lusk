@@ -11,23 +11,20 @@ It's usually hosted within unit test.
 [TestFixture]
 public class MyTest 
 {
-    LuskRuntime Lusk;
-
     [SetUp]
     public void Init()
     {
-        Lusk = LuskFactory.Run<HttpServer>(
-            (request) => HttpServerResponse.Single(
-                File.ReadAllText("MockResponse.txt")
+        Lusk = LuskFactory.Run(
+            new HttpServer(
+                (request) => HttpServerResponse.Single(
+                    File.ReadAllText("MockResponse.txt")
+                )
             )
         );
     }
 
     [TearDown]
-    public void Cleanup()
-    {
-        Lusk.Dispose();
-    }
+    public void Cleanup() => Lusk.Dispose();
 
     [Test]
     public void MyMockTest()
@@ -39,6 +36,8 @@ public class MyTest
         
         Assert.That(response, Is.EqualTo("Lusk"));
     }
+    
+    LuskRuntime Lusk;
 }
 ```
 

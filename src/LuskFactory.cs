@@ -1,5 +1,4 @@
 ﻿using Lusk.Core;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,46 +9,44 @@ namespace Lusk
         static Address LastAddress = Address.Default;
 
         /// <summary>
-        /// Start
+        /// Run
         /// </summary>
-        /// <typeparam name="S"></typeparam>
+        /// <param name="server"></param>
         /// <param name="fn"></param>
         /// <param name="waitForStart"></param>
         /// <param name="address"></param>
         /// <returns></returns>
-        public static LuskRuntime Run<S>(
-            Func<AbstractRequest, AbstractResponse> fn,
+        public static LuskRuntime Run(
+            AbstractServer server,
             bool waitForStart = true,
             Address address = null
-        ) where S : AbstractServer, new()
+        ) 
         {
+            var tcpServer = server as AbstractTcpServer;
+
             if(address == null)
             {
                 address = LastAddress;
             }
 
             var startedEvent = new AutoResetEvent(false);
-            var server = new S();
 
             var runtime = new LuskRuntime(
                 server: server,
                 serverTask: Task.Run(async () =>
                 {
-                    LastAddress = server.Start(
-                        fn,
-                        address
-                    );
+                    LastAddress = server.Start(address);
                     startedEvent.Set();
 
                     var serveNext = true;
                     do
                     {
-                        using (var client = await server.Listener.AcceptTcpClientAsync())
+                        using (var client = await tcpServer.Listener.AcceptTcpClientAsync())
                         {
-                            serveNext = await server.ServeClient(client);
+                            serveNext = await tcpServer.ServeClient(client);
                         }
                     } while (serveNext);
-                    server.Listener.Stop();
+                    tcpServer.Listener.Stop();
                 }),
                 started: startedEvent
             );

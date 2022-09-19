@@ -1,34 +1,21 @@
 ﻿using Lusk.Core;
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace Lusk
 {
-    public class HttpServer : AbstractServer
+    public class HttpServer : AbstractTcpServer
     {
         public override string Name => "HTTP repeating server";
 
-        Address Address;
-        public override Address Start(
-            Func<AbstractRequest, AbstractResponse> processRequest,
-            Address address)
+        HttpServer(Func<HttpRequest, HttpResponse> processRequest)
         {
-            Address = address;
             ProcessRequest = processRequest;
-            Listener = new TcpListener(IPAddress.Parse(Address.IP), Address.Port);
-            // Listener.AllowNatTraversal(true);
-            Listener.Start();
-            Console.WriteLine($"{Name} - listening on: {Address}");
-            return Address.Next();
         }
 
-        protected Func<AbstractRequest, AbstractResponse> ProcessRequest
-        {
-            get;
-            private set;
-        }
+
+        readonly Func<HttpRequest, HttpResponse> ProcessRequest;
 
         public override string Url => $"http://{Address.IP}:{Address.Port}";
 
