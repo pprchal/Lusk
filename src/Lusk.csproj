@@ -7,7 +7,7 @@
     <!-- <Nullable>enable</Nullable> -->
     <Title>Lusk - http server for mocks</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/pprchal/Lusk.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/pprchal/Lusk.git/src</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

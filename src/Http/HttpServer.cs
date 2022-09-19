@@ -9,7 +9,7 @@ namespace Lusk
     {
         public override string Name => "HTTP repeating server";
 
-        HttpServer(Func<HttpRequest, HttpResponse> processRequest)
+        public HttpServer(Func<HttpRequest, HttpResponse> processRequest)
         {
             ProcessRequest = processRequest;
         }
