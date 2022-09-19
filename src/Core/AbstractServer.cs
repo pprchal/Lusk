@@ -2,11 +2,6 @@ namespace Lusk.Core
 {
     public abstract class AbstractServer
     {
-        public abstract string Name
-        {
-            get;
-        }
-
         public Address Address
         {
             get;

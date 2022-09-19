@@ -7,8 +7,6 @@ namespace Lusk
 {
     public class HttpServer : AbstractTcpServer
     {
-        public override string Name => "HTTP repeating server";
-
         public HttpServer(Func<HttpRequest, HttpResponse> processRequest)
         {
             ProcessRequest = processRequest;

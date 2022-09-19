@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -13,7 +12,6 @@ namespace Lusk.Core
             Listener = new TcpListener(IPAddress.Parse(Address.IP), Address.Port);
             // Listener.AllowNatTraversal(true);
             Listener.Start();
-            Console.WriteLine($"{Name} - listening on: {Address}");
             return Address.Next();
         }
 
